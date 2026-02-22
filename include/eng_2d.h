@@ -67,6 +67,18 @@ void  eng_body_set_restitution(ENG_Physics* p, ENG_BodyID id, float r);
 /* 線形減衰 (空気抵抗; 0.0=なし〜1.0=即停止) */
 void  eng_body_set_damping(ENG_Physics* p, ENG_BodyID id, float d);
 
+/** 即時に速度を加算する (ジャンプ等に使用)。 */
+void  eng_body_apply_impulse(ENG_Physics* p, ENG_BodyID id, float ix, float iy);
+
+/** ボディの物理更新・衝突を有効/無効にする。 */
+void  eng_body_set_active(ENG_Physics* p, ENG_BodyID id, bool active);
+
+/** ボディの有効/無効状態を取得する。 */
+bool  eng_body_get_active(ENG_Physics* p, ENG_BodyID id);
+
+/** 摩擦係数設定 (接地中に水平速度を減衰; 0=なし)。 */
+void  eng_body_set_friction(ENG_Physics* p, ENG_BodyID id, float friction);
+
 /** 2 つのボディが現在接触しているかどうか。 */
 bool eng_body_overlaps(ENG_Physics* p, ENG_BodyID a, ENG_BodyID b);
 

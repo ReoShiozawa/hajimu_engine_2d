@@ -17,9 +17,11 @@ typedef struct {
     float grav_scale;    /* 重力スケール */
     float restitution;   /* 反発係数 */
     float damping;       /* 線形減衰 */
+    float friction;      /* 摩擦係数 (0=なし, 1=即停止) */
     ENG_BodyType type;
     bool  used;
     bool  on_ground;
+    bool  active;        /* false のとき物理更新・衝突をスキップ */
 } Body;
 
 struct ENG_Physics {
@@ -50,9 +52,11 @@ ENG_BodyID eng_body_create(ENG_Physics* p, ENG_BodyType type,
             b->grav_scale  = 1.0f;
             b->restitution = 0.0f;
             b->damping     = 0.0f;
+            b->friction    = 0.0f;
             b->type        = type;
             b->used        = true;
             b->on_ground   = false;
+            b->active      = true;
             return (ENG_BodyID)(i + 1);
         }
     }
@@ -115,6 +119,30 @@ bool eng_body_on_ground(ENG_Physics* p, ENG_BodyID id) {
 float eng_body_w(ENG_Physics* p, ENG_BodyID id) { Body* b=get_body(p,id); return b?b->w:0; }
 float eng_body_h(ENG_Physics* p, ENG_BodyID id) { Body* b=get_body(p,id); return b?b->h:0; }
 
+/* ── v1.1.0 追加: インパルス / 有効化 / フリクション ─────*/
+void eng_body_apply_impulse(ENG_Physics* p, ENG_BodyID id, float ix, float iy) {
+    Body* b = get_body(p, id);
+    if (b && b->type != ENG_BODY_STATIC) {
+        b->vx += ix;
+        b->vy += iy;
+    }
+}
+
+void eng_body_set_active(ENG_Physics* p, ENG_BodyID id, bool active) {
+    Body* b = get_body(p, id);
+    if (b) b->active = active;
+}
+
+bool eng_body_get_active(ENG_Physics* p, ENG_BodyID id) {
+    Body* b = get_body(p, id);
+    return b ? b->active : false;
+}
+
+void eng_body_set_friction(ENG_Physics* p, ENG_BodyID id, float friction) {
+    Body* b = get_body(p, id);
+    if (b) b->friction = friction < 0.0f ? 0.0f : friction;
+}
+
 /* ── 物理更新 ────────────────────────────────────────────*/
 void eng_phys_update(ENG_Physics* p, float dt) {
     if (!p || dt <= 0.0f) return;
@@ -122,7 +150,7 @@ void eng_phys_update(ENG_Physics* p, float dt) {
     /* 重力・速度統合 */
     for (int i = 0; i < MAX_BODIES; ++i) {
         Body* b = &p->bodies[i];
-        if (!b->used || b->type == ENG_BODY_STATIC) continue;
+        if (!b->used || !b->active || b->type == ENG_BODY_STATIC) continue;
         if (b->type == ENG_BODY_DYNAMIC) {
             b->vx += p->grav_x * b->grav_scale * dt;
             b->vy += p->grav_y * b->grav_scale * dt;
@@ -131,6 +159,12 @@ void eng_phys_update(ENG_Physics* p, float dt) {
         float damp = 1.0f - b->damping * dt;
         if (damp < 0.0f) damp = 0.0f;
         b->vx *= damp; b->vy *= damp;
+        /* 摩擦 (接地中のみ水平方向に適用) */
+        if (b->on_ground && b->friction > 0.0f) {
+            float fric = 1.0f - b->friction * dt;
+            if (fric < 0.0f) fric = 0.0f;
+            b->vx *= fric;
+        }
         /* 移動 */
         b->x += b->vx * dt;
         b->y += b->vy * dt;
@@ -140,11 +174,11 @@ void eng_phys_update(ENG_Physics* p, float dt) {
     /* AABB 衝突応答 (simple swept-AABB push-out) */
     for (int i = 0; i < MAX_BODIES; ++i) {
         Body* a = &p->bodies[i];
-        if (!a->used || a->type == ENG_BODY_STATIC) continue;
+        if (!a->used || !a->active || a->type == ENG_BODY_STATIC) continue;
         for (int j = 0; j < MAX_BODIES; ++j) {
             if (i == j) continue;
             Body* b = &p->bodies[j];
-            if (!b->used) continue;
+            if (!b->used || !b->active) continue;
             if (a->type == ENG_BODY_DYNAMIC && b->type == ENG_BODY_DYNAMIC && i > j) continue;
             if (!aabb_overlap(a, b)) continue;
 

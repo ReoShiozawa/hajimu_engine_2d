@@ -59,6 +59,10 @@ static Value fn_ボディ矩形衝突(int argc, Value* args) {
     return BVAL(eng_body_overlaps_rect(g_phys,ARG_INT(0),ARG_F(1),ARG_F(2),ARG_F(3),ARG_F(4)));
 }
 static Value fn_接地判定(int argc, Value* args) { return BVAL(eng_body_on_ground(g_phys,ARG_INT(0))); }
+static Value fn_ボディインパルス(int argc, Value* args) { eng_body_apply_impulse(g_phys,ARG_INT(0),ARG_F(1),ARG_F(2)); return NUL; }
+static Value fn_ボディ有効設定(int argc, Value* args)   { eng_body_set_active(g_phys,ARG_INT(0),ARG_B(1)); return NUL; }
+static Value fn_ボディ有効取得(int argc, Value* args)   { return BVAL(eng_body_get_active(g_phys,ARG_INT(0))); }
+static Value fn_ボディ摩擦設定(int argc, Value* args)   { eng_body_set_friction(g_phys,ARG_INT(0),ARG_F(1)); return NUL; }
 
 /* ── タイルマップ ────────────────────────────────────────*/
 static Value fn_タイルマップ読込(int argc, Value* args) {
@@ -106,6 +110,10 @@ static HajimuPluginFunc funcs[] = {
     FN(ボディ衝突中,      2, 2),
     FN(ボディ矩形衝突,    5, 5),
     FN(接地判定,          1, 1),
+    FN(ボディインパルス,  3, 3),
+    FN(ボディ有効設定,    2, 2),
+    FN(ボディ有効取得,    1, 1),
+    FN(ボディ摩擦設定,    2, 2),
     /* タイルマップ */
     FN(タイルマップ読込,       3, 3),
     FN(タイルマップ削除,       1, 1),
@@ -120,7 +128,7 @@ static HajimuPluginFunc funcs[] = {
 HAJIMU_PLUGIN_EXPORT HajimuPluginInfo* hajimu_plugin_init(void) {
     static HajimuPluginInfo info = {
         .name           = "engine_2d",
-        .version        = "1.0.0",
+        .version        = "1.1.0",
         .author         = "Reo Shiozawa",
         .description    = "はじむ用 2D 物理・タイルマップエンジン",
         .functions      = funcs,

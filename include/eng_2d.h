@@ -89,6 +89,17 @@ bool eng_body_overlaps_rect(ENG_Physics* p, ENG_BodyID id,
 /** 接地判定 (下端が静的ボディ上端に接触)。 */
 bool eng_body_on_ground(ENG_Physics* p, ENG_BodyID id);
 
+/** ボディのサイズ (w, h) を変更する。 */
+void eng_body_set_size(ENG_Physics* p, ENG_BodyID id, float w, float h);
+
+/** レイキャスト: 始点 (ox,oy) から方向 (dx,dy) に最大 len ピクセル進み、
+ *  最初に当たったボディIDを返す (なければ 0)。
+ *  hit_x / hit_y に接触座標を書き込む (NULLも可)。 */
+ENG_BodyID eng_phys_raycast(ENG_Physics* p,
+                              float ox, float oy,
+                              float dx, float dy, float len,
+                              float* hit_x, float* hit_y);
+
 /* サイズ取得 */
 float eng_body_w(ENG_Physics* p, ENG_BodyID id);
 float eng_body_h(ENG_Physics* p, ENG_BodyID id);
@@ -133,6 +144,9 @@ void eng_map_resolve_body(ENG_MapID map_id, ENG_Physics* p, ENG_BodyID body_id);
  * 矩形がソリッドタイルと重なっているかどうか (センサー判定)。
  */
 bool eng_map_overlaps_rect(ENG_MapID id, float x, float y, float w, float h);
+
+/** ピクセル座標 (px, py) が含まれるタイルのインデックスを返す (-1=範囲外)。 */
+int eng_map_get_tile_at_pixel(ENG_MapID id, float px, float py);
 
 #ifdef __cplusplus
 }

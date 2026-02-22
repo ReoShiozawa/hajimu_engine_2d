@@ -215,3 +215,47 @@ void eng_phys_update(ENG_Physics* p, float dt) {
         }
     }
 }
+
+/* ── ボディサイズ設定 ────────────────────────────────────*/
+void eng_body_set_size(ENG_Physics* p, ENG_BodyID id, float w, float h) {
+    Body* b = get_body(p, id);
+    if (b) { b->w = w; b->h = h; }
+}
+
+/* ── レイキャスト (AABB スラブ法) ───────────────────────*/
+ENG_BodyID eng_phys_raycast(ENG_Physics* p,
+                              float ox, float oy,
+                              float dx, float dy, float len,
+                              float* hit_x, float* hit_y) {
+    if (!p || len <= 0.0f) return 0;
+    float mag = sqrtf(dx*dx + dy*dy);
+    if (mag < 1e-6f) return 0;
+    float ux = dx / mag, uy = dy / mag;
+
+    ENG_BodyID best_id = 0;
+    float best_t = len;
+
+    for (int i = 0; i < MAX_BODIES; i++) {
+        Body* b = &p->bodies[i];
+        if (!b->used || !b->active) continue;
+        float inv_ux = (ux != 0.0f) ? 1.0f/ux : 1e30f;
+        float inv_uy = (uy != 0.0f) ? 1.0f/uy : 1e30f;
+        float tx1 = (b->x        - ox) * inv_ux;
+        float tx2 = (b->x + b->w - ox) * inv_ux;
+        float ty1 = (b->y        - oy) * inv_uy;
+        float ty2 = (b->y + b->h - oy) * inv_uy;
+        if (tx1 > tx2) { float tmp=tx1; tx1=tx2; tx2=tmp; }
+        if (ty1 > ty2) { float tmp=ty1; ty1=ty2; ty2=tmp; }
+        float tmin = tx1 > ty1 ? tx1 : ty1;
+        float tmax = tx2 < ty2 ? tx2 : ty2;
+        if (tmax < 0.0f || tmin > tmax || tmin > best_t) continue;
+        float t = tmin < 0.0f ? 0.0f : tmin;
+        best_t  = t;
+        best_id = (ENG_BodyID)(i + 1);
+    }
+    if (best_id && hit_x && hit_y) {
+        *hit_x = ox + ux * best_t;
+        *hit_y = oy + uy * best_t;
+    }
+    return best_id;
+}

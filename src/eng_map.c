@@ -159,3 +159,13 @@ void eng_map_resolve_body(ENG_MapID map_id, ENG_Physics* p, ENG_BodyID body_id) 
     eng_body_set_pos(p, body_id, bx, by);
     eng_body_set_vel(p, body_id, bvx, bvy);
 }
+
+/* ── ピクセル座標からタイルインデックスを返す ─────────────*/
+int eng_map_get_tile_at_pixel(ENG_MapID id, float px, float py) {
+    TileMap* m = get_map(id);
+    if (!m) return -1;
+    int col = (int)(px / m->tile_w);
+    int row = (int)(py / m->tile_h);
+    if (col < 0 || col >= m->cols || row < 0 || row >= m->rows) return -1;
+    return m->tiles[row * m->cols + col];
+}

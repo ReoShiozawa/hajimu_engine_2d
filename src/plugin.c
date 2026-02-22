@@ -5,6 +5,7 @@
  */
 #include "hajimu_plugin.h"
 #include "eng_2d.h"
+#include <stdio.h>
 
 static ENG_Physics* g_phys = NULL;
 
@@ -83,6 +84,23 @@ static Value fn_タイルマップ矩形衝突(int argc, Value* args) {
 static Value fn_タイルマップ衝突応答(int argc, Value* args) {
     eng_map_resolve_body(ARG_INT(0), g_phys, ARG_INT(1)); return NUL;
 }
+static Value fn_ボディサイズ設定(int argc, Value* args) {
+    eng_body_set_size(g_phys, ARG_INT(0), ARG_F(1), ARG_F(2)); return NUL;
+}
+static Value fn_ピクセルタイル取得(int argc, Value* args) {
+    return NUM(eng_map_get_tile_at_pixel(ARG_INT(0), ARG_F(1), ARG_F(2)));
+}
+static Value fn_レイキャスト(int argc, Value* args) {
+    /* 引数: ox, oy, dx, dy, len → "hit_body_id,hx,hy" または "0,0,0" */
+    float hx = 0, hy = 0;
+    ENG_BodyID bid = eng_phys_raycast(g_phys,
+                                       ARG_F(0), ARG_F(1),
+                                       ARG_F(2), ARG_F(3), ARG_F(4),
+                                       &hx, &hy);
+    static char buf[64];
+    snprintf(buf, sizeof(buf), "%d,%g,%g", (int)bid, (double)hx, (double)hy);
+    return hajimu_string(buf);
+}
 
 /* ── プラグイン登録 ─────────────────────────────────────*/
 #define FN(name, mn, mx) { #name, fn_##name, mn, mx }
@@ -123,12 +141,15 @@ static HajimuPluginFunc funcs[] = {
     FN(タイルインデックス設定, 4, 4),
     FN(タイルマップ矩形衝突,   5, 5),
     FN(タイルマップ衝突応答,   2, 2),
+    FN(ボディサイズ設定,       3, 3),
+    FN(ピクセルタイル取得,     3, 3),
+    FN(レイキャスト,           5, 5),
 };
 
 HAJIMU_PLUGIN_EXPORT HajimuPluginInfo* hajimu_plugin_init(void) {
     static HajimuPluginInfo info = {
         .name           = "engine_2d",
-        .version        = "1.1.0",
+        .version        = "1.2.0",
         .author         = "Reo Shiozawa",
         .description    = "はじむ用 2D 物理・タイルマップエンジン",
         .functions      = funcs,

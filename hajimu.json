@@ -4,6 +4,7 @@
   "description": "はじむ言語用 2D 物理・タイルマップエンジン",
   "author": "Reo Shiozawa",
   "license": "MIT",
-  "entry": "engine_2d.hjp",
-  "dependencies": []
+  "entry": "build/engine_2d.hjp",
+  "dependencies": [],
+  "ビルド": "make build/engine_2d.hjp"
 }

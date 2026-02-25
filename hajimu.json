@@ -6,5 +6,6 @@
   "license": "MIT",
   "entry": "build/engine_2d.hjp",
   "dependencies": [],
+  "repository": "https://github.com/ReoShiozawa/hajimu_engine_2d",
   "ビルド": "make build/engine_2d.hjp"
 }

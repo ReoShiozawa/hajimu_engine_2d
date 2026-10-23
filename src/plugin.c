@@ -146,6 +146,8 @@ static HajimuPluginFunc funcs[] = {
     FN(レイキャスト,           5, 5),
 };
 
+HAJIMU_PLUGIN_ABI_EXPORT()
+
 HAJIMU_PLUGIN_EXPORT HajimuPluginInfo* hajimu_plugin_init(void) {
     static HajimuPluginInfo info = {
         .name           = "engine_2d",

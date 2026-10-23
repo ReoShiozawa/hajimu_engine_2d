@@ -1,11 +1,12 @@
 {
+  "schema_version": 2,
   "name": "engine_2d",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "はじむ言語用 2D 物理・タイルマップエンジン",
   "author": "Reo Shiozawa",
   "license": "MIT",
   "entry": "build/engine_2d.hjp",
-  "dependencies": [],
+  "dependencies": {},
   "repository": "https://github.com/ReoShiozawa/hajimu_engine_2d",
-  "ビルド": "make build/engine_2d.hjp"
+  "build": "make build/engine_2d.hjp"
 }
